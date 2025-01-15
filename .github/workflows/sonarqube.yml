@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  sonar-scan:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: self-hosted
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
