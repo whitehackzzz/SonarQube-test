@@ -11,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the code from the repository
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Ensure a full clone for better relevancy in analysis
 
-      # Check if SonarScanner is installed, install it if not
-      - name: Check if SonarScanner is installed
+      # Install SonarScanner
+      - name: Install SonarScanner
         run: |
           if ! command -v sonar-scanner &> /dev/null; then
             echo "SonarScanner not found, installing..."
@@ -27,9 +28,12 @@ jobs:
             echo "SonarScanner is already installed"
           fi
 
-      # Build the project (e.g., Maven build for Java projects)
+      # Build the project (e.g., Maven for Java projects)
       - name: Build the project with Maven
-        run: mvn clean install  # Adjust this command to your build system
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
+          mvn clean install  # Adjust this command according to your build system
 
       # Run the SonarQube scan
       - name: Run SonarQube scan
