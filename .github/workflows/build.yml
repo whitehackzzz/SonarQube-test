@@ -1,28 +1,53 @@
-name: Build
+name: SonarQube Scan
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger the scan on push to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger the scan on PR targeting the main branch
 
 jobs:
-  build:
-    name: Build and analyze
-    runs-on: [self-hosted, windows]  # Use self-hosted runner, specify platform as needed
-    
+  sonarqube_scan:
+    runs-on: ubuntu-latest  # Run on the latest Ubuntu runner
+
     steps:
-      - uses: actions/checkout@v4
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up JDK (required for SonarScanner)
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-          
-      - uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
-      # - uses: SonarSource/sonarqube-quality-gate-action@v1
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          java-version: '11'
+
+      # Step 3: Install dependencies (for example, npm for a Node.js project)
+      - name: Install dependencies
+        run: |
+          npm install  # Adjust this based on your project's dependency manager
+
+      # Step 4: Install SonarScanner CLI
+      - name: Install SonarScanner
+        run: |
+          curl -sS https://downloads.sonarqube.org/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip -o sonar-scanner.zip
+          unzip sonar-scanner.zip -d $HOME
+          echo "$HOME/sonar-scanner-4.8.0.2856-linux/bin" >> $GITHUB_PATH  # Add SonarScanner to the PATH
+
+      # Step 5: Run SonarQube scanner to analyze the repository
+      - name: Run SonarQube scan
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=<Your-Project-Key> \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN  # Use a GitHub secret for your SonarQube token
+
+      # Optional: Cache dependencies to speed up future runs
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
