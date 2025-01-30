@@ -8,48 +8,21 @@ on:
 jobs:
   build:
     name: Build and analyze
-    runs-on: self-hosted  # Ensure that you're running on a self-hosted runner
+    runs-on: [self-hosted, windows]  # Use self-hosted runner, specify platform as needed
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Disable shallow clones for better analysis relevance
-      
-      - name: Set up JDK 11 (if needed)
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adoptopenjdk'  # You can replace with other distributions if necessary
-
-      - name: Install SonarScanner
-        shell: pwsh
-        run: |
-          $errorActionPreference = "Stop"
-          # Download SonarScanner
-          $sonarScannerZipUrl = "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-windows-x64.zip"
-          $sonarScannerZip = "sonar-scanner-cli.zip"
-          Invoke-WebRequest -Uri $sonarScannerZipUrl -OutFile $sonarScannerZip
-          # Extract the contents
-          Expand-Archive -Path $sonarScannerZip -DestinationPath $env:USERPROFILE\sonar-scanner
-          # Add to the system PATH for the current session
-          $env:PATH += ";$env:USERPROFILE\sonar-scanner\sonar-scanner-6.2.1.4610-windows-x64\bin"
-          # Verify the sonar-scanner installation
-          sonar-scanner --version
-
-      - name: Run SonarQube scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Secret for SonarQube token
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Secret for SonarQube URL
-        
-      # Optional Quality Gate check (uncomment if you want to fail the job based on quality gate status)
-      - name: Check SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-        timeout-minutes: 5
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          
+      - uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # Success message
-      - name: Success
-        run: echo "SonarQube scan completed successfully!"
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
