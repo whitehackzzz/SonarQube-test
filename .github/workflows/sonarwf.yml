@@ -8,7 +8,7 @@ on:
 
 jobs:
   sonar-scan:
-    runs-on: self-hosted
+    runs-on: windows-latest
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
@@ -25,7 +25,7 @@ jobs:
       - name: SonarQube Scan
         run: |
           sonar-scanner \
-          -Dsonar.projectKey=whitehackzzz_SonarQube-test999_43896c4c-8e09-4909-965d-897465f7d07d \
+          -Dsonar.sonar.projectKey=whitehackzzz_SonarQube-test999_056d7ab7-ed14-4ba5-a01c-12f319cadcea \
           -Dsonar.sources=. \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
