@@ -9,18 +9,23 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      # Install SonarScanner
-      - name: Install SonarScanner
+      # Check if SonarScanner is installed, install it if not
+      - name: Check if SonarScanner is installed
         run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-          unzip sonar-scanner.zip
-          sudo mv sonar-scanner-*/bin/* /usr/local/bin/
+          if ! command -v sonar-scanner &> /dev/null; then
+            echo "SonarScanner not found, installing..."
+            curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+            unzip sonar-scanner.zip
+            sudo mv sonar-scanner-*/bin/* /usr/local/bin/
+          else
+            echo "SonarScanner is already installed"
+          fi
 
       # Run the SonarQube scan
       - uses: SonarSource/sonarqube-scan-action@v4
