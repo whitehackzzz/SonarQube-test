@@ -5,22 +5,43 @@ on:
     branches:
       - main
 
-
 jobs:
   build:
     name: Build and analyze
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      # Install SonarQube (different steps for different OS)
+      - name: Install SonarQube
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" || "${{ matrix.os }}" == "macos-latest" ]]; then
+            curl -sSLo sonarqube.zip https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.1.0.102122.zip
+            unzip sonarqube.zip
+            sudo mv sonarqube-*/bin/* /usr/local/bin/
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            Invoke-WebRequest -Uri https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.1.0.102122.zip -OutFile sonarqube.zip
+            Expand-Archive -Path sonarqube.zip -DestinationPath $env:ProgramFiles
+            $env:SonarScannerPath = Join-Path $env:ProgramFiles 'sonarqube-25.1.0.102122\bin'
+            [System.Environment]::SetEnvironmentVariable('Path', $env:SonarScannerPath, [System.EnvironmentVariableTarget]::Machine)
+          fi
+        shell: bash
+        continue-on-error: false
+
+      # Run the SonarQube scan
       - uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      # If you wish to fail your job when the Quality Gate is red, uncomment the
-      # following lines. This would typically be used to fail a deployment.
+
+      # Uncomment the lines below if you want to fail the job when the Quality Gate fails
       # - uses: SonarSource/sonarqube-quality-gate-action@v1
       #   timeout-minutes: 5
       #   env:
