@@ -40,9 +40,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # Step 5: Handle errors and print logs if the SonarQube scan fails
+      # Step 5: Troubleshoot on failure
       - name: Troubleshoot on failure
         if: failure()
         run: |
           echo "SonarQube scan failed. Here are the logs:"
-          cat ./sonar-report.txt  # Modify if you save the logs in a specific file
+          
+          # Output SonarQube logs from the console if no sonar-report.txt exists
+          echo "Printing logs from the SonarQube scanner..."
+          Get-Content D:\a\_temp\sonar-scanner-debug.txt -ErrorAction SilentlyContinue
+          # You can adjust the path if your debug log file is in a different location
