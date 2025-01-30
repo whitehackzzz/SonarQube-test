@@ -31,12 +31,14 @@ jobs:
             Expand-Archive -Path sonarqube.zip -DestinationPath $env:ProgramFiles
             $env:SonarScannerPath = Join-Path $env:ProgramFiles 'sonarqube-25.1.0.102122\bin'
             [System.Environment]::SetEnvironmentVariable('Path', $env:SonarScannerPath, [System.EnvironmentVariableTarget]::Machine)
+            Write-Host "SonarScanner path added to the system PATH"
           fi
         shell: bash
         continue-on-error: false
 
       # Run the SonarQube scan
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - name: Run SonarQube Analysis
+        run: sonar-scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
