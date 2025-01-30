@@ -33,13 +33,14 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://downloads.sonarqube.org/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-windows.zip" -OutFile "sonar-scanner.zip"
           Expand-Archive -Path "sonar-scanner.zip" -DestinationPath "$env:USERPROFILE"
-          $env:PATH += ";$env:USERPROFILE\sonar-scanner-4.8.0.2856-windows\bin"
+          $env:SONAR_SCANNER_HOME = "$env:USERPROFILE\sonar-scanner-4.8.0.2856-windows"
+          $env:PATH += ";$env:SONAR_SCANNER_HOME\bin"
           Write-Host "SonarScanner added to PATH"
 
       # Step 5: Run SonarQube scanner to analyze the repository
       - name: Run SonarQube scan
         run: |
-          sonar-scanner \
+          $env:SONAR_SCANNER_HOME\bin\sonar-scanner \
             -Dsonar.projectKey=<Your-Project-Key> \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$env:SONAR_TOKEN  # Use a GitHub secret for your SonarQube token
