@@ -9,21 +9,44 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    
+
     steps:
+      # Checkout the code from the repository
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Ensure a full clone for better relevancy in analysis
 
       # Install SonarScanner
       - name: Install SonarScanner
         run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-25.1.0.102122.zip
-          unzip sonar-scanner.zip
-          sudo mv sonar-scanner-*/bin/* /usr/local/bin/
+          if ! command -v sonar-scanner &> /dev/null; then
+            echo "SonarScanner not found, installing..."
+            curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+            unzip sonar-scanner.zip
+            # Inspect the extracted directory structure
+            ls sonar-scanner-*/bin
+            # Move binaries to /usr/local/bin
+            sudo mv sonar-scanner-*/bin/sonar-scanner /usr/local/bin/
+          else
+            echo "SonarScanner is already installed"
+          fi
+
+      # Build the project (e.g., Maven for Java projects)
+      - name: Build the project with Maven
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
+          mvn clean install  # Adjust this command according to your build system
 
       # Run the SonarQube scan
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - name: Run SonarQube scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          args: |
+            # Provide compiled classes directory if it's a Java project
+            -Dsonar.java.binaries=target/classes  # Replace with your compiled classes directory
+            # Alternatively, exclude .java files if you don't want them analyzed
+            # -Dsonar.exclusions=**/*.java
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
