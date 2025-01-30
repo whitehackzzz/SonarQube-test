@@ -1,23 +1,19 @@
-name: Build and Analyze
+name: Build
 
 on:
   push:
     branches:
       - main
-    # Trigger the workflow when files are uploaded to any branch.
-    paths:
-      - '**/*'  # This ensures that any changes in the repository trigger the scan
 
 jobs:
   build:
-    name: Build and Analyze
+    name: Build and analyze
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensures a full history is cloned, which is important for the analysis.
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       # Install SonarScanner
       - name: Install SonarScanner
@@ -26,16 +22,14 @@ jobs:
           unzip sonar-scanner.zip
           sudo mv sonar-scanner-*/bin/* /usr/local/bin/
 
-      # Run SonarQube scan
-      - name: Run SonarQube scan
-        uses: SonarSource/sonarqube-scan-action@v4
+      # Run the SonarQube scan
+      - uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # Optional: Fail the job if Quality Gate fails
+      # Uncomment the lines below if you want to fail the job when the Quality Gate fails
       # - uses: SonarSource/sonarqube-quality-gate-action@v1
       #   timeout-minutes: 5
       #   env:
       #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
