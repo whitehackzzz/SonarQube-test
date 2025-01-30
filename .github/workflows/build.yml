@@ -10,7 +10,7 @@ on:
 
 jobs:
   sonarqube_scan:
-    runs-on: ubuntu-latest  # Run on the latest Ubuntu runner
+    runs-on: windows-latest  # Run on the latest Windows runner
 
     steps:
       # Step 1: Checkout the repository
@@ -31,9 +31,10 @@ jobs:
       # Step 4: Install SonarScanner CLI
       - name: Install SonarScanner
         run: |
-          curl -sS https://downloads.sonarqube.org/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip -o sonar-scanner.zip
-          unzip sonar-scanner.zip -d $HOME
-          echo "$HOME/sonar-scanner-4.8.0.2856-linux/bin" >> $GITHUB_PATH  # Add SonarScanner to the PATH
+          Invoke-WebRequest -Uri "https://downloads.sonarqube.org/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-windows.zip" -OutFile "sonar-scanner.zip"
+          Expand-Archive -Path "sonar-scanner.zip" -DestinationPath "$env:USERPROFILE"
+          $env:PATH += ";$env:USERPROFILE\sonar-scanner-4.8.0.2856-windows\bin"
+          Write-Host "SonarScanner added to PATH"
 
       # Step 5: Run SonarQube scanner to analyze the repository
       - name: Run SonarQube scan
@@ -41,7 +42,7 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=<Your-Project-Key> \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN  # Use a GitHub secret for your SonarQube token
+            -Dsonar.login=$env:SONAR_TOKEN  # Use a GitHub secret for your SonarQube token
 
       # Optional: Cache dependencies to speed up future runs
       - name: Cache node_modules
