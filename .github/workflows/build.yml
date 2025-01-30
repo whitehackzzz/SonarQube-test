@@ -1,52 +1,29 @@
-name: Build and Analyze
-
+name: CI/CD workflow for Maven Build and Sonar Code scan
 on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
 jobs:
   build:
-    name: Build and analyze
     runs-on: windows-latest
-
     steps:
-      # Step 1: Checkout code
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
-      # Step 2: Install dependencies (if needed, for example, Maven or Gradle for Java projects)
-      - name: Install Dependencies
-        run: |
-          # Install your dependencies here, for example, if it's a Node.js project
-          npm install
-
-      # Step 3: Run SonarQube scan
-      - name: Run SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        with:
-          args: '-X'  # Debug mode for detailed logs
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-      # Step 4: Check SonarQube Quality Gate status (this will fail the job if issues are found)
-      - name: Check Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-        with:
-          timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-      # Step 5: Troubleshoot on failure
-      - name: Troubleshoot on failure
-        if: failure()
-        run: |
-          echo "SonarQube scan failed. Here are the logs:"
-          
-          # Output SonarQube logs from the console if no sonar-report.txt exists
-          echo "Printing logs from the SonarQube scanner..."
-          Get-Content D:\a\_temp\sonar-scanner-debug.txt -ErrorAction SilentlyContinue
-          # You can adjust the path if your debug log file is in a different location
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+    - name: Build with Maven
+      run: mvn clean install -f MyWebApp/pom.xml
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      with:
+        projectBaseDir: .
+        args: >
+          -Dsonar.organization=my-org
+          -Dsonar.projectKey=my-Java-web-app
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
