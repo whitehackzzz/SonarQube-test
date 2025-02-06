@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -23,14 +23,25 @@ jobs:
           java-version: '17'
           check-latest: true
 
-      - name: Add SonarQube repository
+      - name: Check if SonarQube scanner is installed
+        id: check_sonar_scanner
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
+          if ! command -v sonar-scanner &> /dev/null; then
+            echo "SonarQube scanner not found"
+            echo "not_installed=true" >> $GITHUB_ENV
+          else
+            echo "SonarQube scanner is already installed"
+            echo "not_installed=false" >> $GITHUB_ENV
+          fi
 
-      - name: Install SonarQube scanner
+      - name: Download and set up SonarQube scanner if not installed
+        if: env.not_installed == 'true'
         run: |
-          sudo apt-get install -y sonar-scanner
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+          unzip sonar-scanner-cli-6.2.1.4610-linux-x64.zip
+          mv sonar-scanner-* sonar-scanner
+          sudo mv sonar-scanner /usr/local/bin/
+          echo 'export PATH=$PATH:/usr/local/bin/sonar-scanner/bin' >> $GITHUB_ENV
 
       - name: Verify SonarQube scanner installation
         run: sonar-scanner --version
