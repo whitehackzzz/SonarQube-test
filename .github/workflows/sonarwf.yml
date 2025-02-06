@@ -25,7 +25,7 @@ jobs:
       - name: SonarQube Scan
         run: |
           sonar-scanner \
-          -Dsonar.sonar.projectKey=whitehackzzz_SonarQube-test999_056d7ab7-ed14-4ba5-a01c-12f319cadcea \
+          -Dsonar.sonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 \
           -Dsonar.sources=. \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
