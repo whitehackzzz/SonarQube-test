@@ -35,8 +35,8 @@ jobs:
 
       - name: Run SonarQube Scan
         run: |
-          sonar-scanner.bat ^
-            "-Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163" ^
-            "-Dsonar.sources=." ^
-            "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" ^
+          sonar-scanner.bat `
+            "-Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163" `
+            "-Dsonar.sources=." `
+            "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
             "-Dsonar.login=${{ secrets.SONAR_TOKEN }}"
