@@ -22,15 +22,14 @@ jobs:
           java-version: '11'  # Set JDK version to 11
           distribution: 'adopt'  # Use AdoptOpenJDK (or you can use 'temurin' for newer versions)
 
-      - name: Install Maven
+      - name: Compile Java files
         run: |
-          sudo apt-get update
-          sudo apt-get install -y maven
+          mkdir -p out  # Create output directory for compiled classes
+          javac -d out src/**/*.java  # Compile all Java files in the src directory
 
-      - name: Build with Maven
+      - name: Run Java application
         run: |
-          cd path/to/your/project  # Change this to the directory containing your pom.xml
-          mvn clean install
+          java -cp out MainClass  # Replace MainClass with the name of your main class
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
