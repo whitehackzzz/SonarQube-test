@@ -16,10 +16,10 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '11'  # Set JDK version to 11
+          java-version: '17'  # Set JDK version to 17
           distribution: 'adopt'  # Use AdoptOpenJDK (or you can use 'temurin' for newer versions)
 
       - name: Download SonarQube Scanner
