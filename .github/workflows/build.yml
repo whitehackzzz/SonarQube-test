@@ -23,9 +23,13 @@ jobs:
           java-version: '17'
           check-latest: true
 
+      - name: Add SonarQube repository
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+
       - name: Install SonarQube scanner
         run: |
-          sudo apt-get update
           sudo apt-get install -y sonar-scanner
 
       - name: Verify SonarQube scanner installation
