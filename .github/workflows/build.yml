@@ -22,6 +22,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Build with Maven
+        run: mvn clean install
+
       - name: Check if SonarScanner is already installed
         run: |
           if (-Not (Test-Path "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat")) {
@@ -38,5 +41,6 @@ jobs:
           sonar-scanner.bat `
             "-Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163" `
             "-Dsonar.sources=." `
+            "-Dsonar.java.binaries=target/classes" `
             "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
             "-Dsonar.login=${{ secrets.SONAR_TOKEN }}"
