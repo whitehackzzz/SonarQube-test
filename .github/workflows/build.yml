@@ -22,11 +22,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download & Install SonarScanner
+      - name: Check if SonarScanner is already installed
         run: |
-          Invoke-WebRequest -Uri "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip" -OutFile "sonar-scanner.zip"
-          Expand-Archive -Path sonar-scanner.zip -DestinationPath "C:\sonar-scanner" -Force
-          echo "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+          if (-Not (Test-Path "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat")) {
+            Write-Host "SonarScanner not found, downloading..."
+            Invoke-WebRequest -Uri "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip" -OutFile "sonar-scanner.zip"
+            Expand-Archive -Path sonar-scanner.zip -DestinationPath "C:\sonar-scanner" -Force
+            echo "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+          } else {
+            Write-Host "SonarScanner already installed."
+          }
 
       - name: Run SonarQube Scan
         run: |
