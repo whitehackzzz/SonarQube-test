@@ -1,60 +1,27 @@
-name: SonarQube Analysis
+name: Build
 
 on:
   push:
     branches:
       - main
-      - master
-  pull_request:
-    branches:
-      - main
-      - master
+
 
 jobs:
-  sonar:
-    name: SonarQube Scan
-    runs-on: ubuntu-latest
-
+  build:
+    name: Build and analyze
+    runs-on: self-hosted
+    
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      # Detect if the project uses Maven or Gradle
-      - name: Detect Build System
-        id: build-system
-        run: |
-          if [ -f "pom.xml" ]; then
-            echo "BUILD_SYSTEM=MAVEN" >> $GITHUB_ENV
-          elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-            echo "BUILD_SYSTEM=GRADLE" >> $GITHUB_ENV
-          else
-            echo "No supported build system found!" && exit 1
-          fi
-
-      # Build the project using Maven
-      - name: Build with Maven
-        if: env.BUILD_SYSTEM == 'MAVEN'
-        run: mvn clean install -DskipTests
-
-      # Build the project using Gradle
-      - name: Build with Gradle
-        if: env.BUILD_SYSTEM == 'GRADLE'
-        run: ./gradlew build -x test
-
-      # Run SonarQube Scanner
-      - name: Run SonarQube Scanner
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sonarqube.hackerites.com \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.java.binaries=$(if [ "$BUILD_SYSTEM" == "MAVEN" ]; then echo "target/classes"; else echo "build/classes/java/main"; fi)
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
