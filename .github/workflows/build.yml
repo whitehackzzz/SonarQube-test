@@ -36,8 +36,8 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 \
             -Dsonar.sources=src \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.host.url=https://sonarqube.hackerites.com \
+            -Dsonar.login=sqp_3583ad8a290a1d53b0633b9c401dc750424d2ad6
 
       # Uncomment the following lines if you want to fail the job when the Quality Gate is red
       # - name: Check SonarQube Quality Gate
