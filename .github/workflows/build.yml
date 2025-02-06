@@ -1,58 +1,37 @@
-name: Build
+name: SonarQube Scan
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
-    name: Build and analyze
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+  sonarqube:
+    runs-on: windows-latest
 
-      - name: Set up JDK 17
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: '17'
-          check-latest: true
 
-      - name: Check if SonarQube scanner is installed
-        id: check_sonar_scanner
+      - name: Download & Install SonarScanner
         run: |
-          if ! command -v sonar-scanner &> /dev/null; then
-            echo "SonarQube scanner not found"
-            echo "not_installed=true" >> $GITHUB_ENV
-          else
-            echo "SonarQube scanner is already installed"
-            echo "not_installed=false" >> $GITHUB_ENV
-          fi
+          Invoke-WebRequest -Uri "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip" -OutFile "sonar-scanner.zip"
+          Expand-Archive -Path sonar-scanner.zip -DestinationPath "C:\sonar-scanner" -Force
+          echo "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
 
-      - name: Download and set up SonarQube scanner if not installed
-        if: env.not_installed == 'true'
+      - name: Run SonarQube Scan
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
-          unzip sonar-scanner-cli-6.2.1.4610-linux-x64.zip
-          mv sonar-scanner-* sonar-scanner
-          cd /sonar-scanner/sonar-scanner-6.2.1.4610-linux-x64/bin/
-          
-
-      - name: Verify SonarQube scanner installation
-        run: sonar-scanner --version
-
-      - name: Run SonarQube scan with system JRE
-        run: |
-          sonar-scanner -Dsonar.projectKey=my_project -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-      
-      # Uncomment the following lines if you want to fail the job when the Quality Gate is red
-      # - name: Quality Gate check
-      #   uses: SonarSource/sonarqube-quality-gate-action@v1
-      #   timeout-minutes: 5
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          sonar-scanner.bat `
+          -Dsonar.projectKey=MyProject `
+          -Dsonar.sources=. `
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} `
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
