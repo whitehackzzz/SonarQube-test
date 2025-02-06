@@ -8,7 +8,7 @@ on:
 jobs:
   sonar:
     name: Run SonarQube Scanner
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
       - name: Checkout code
@@ -29,15 +29,19 @@ jobs:
           unzip sonar-scanner-cli-4.8.0.2856-linux.zip
           mv sonar-scanner-4.8.0.2856-linux sonar-scanner
           echo "SONAR_SCANNER_HOME=$(pwd)/sonar-scanner" >> $GITHUB_ENV
-          echo "$SONAR_SCANNER_HOME/bin" >> $GITHUB_PATH
+          echo "$(pwd)/sonar-scanner/bin" >> $GITHUB_PATH  # Add to PATH
+
+      - name: Verify SonarQube Scanner Installation
+        run: |
+          sonar-scanner --version  # Verify that sonar-scanner is available
 
       - name: Run SonarQube Scanner
         run: |
           sonar-scanner \
             -Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 \
             -Dsonar.sources=src \
-            -Dsonar.host.url=https://sonarqube.hackerites.com \
-            -Dsonar.login=sqp_3583ad8a290a1d53b0633b9c401dc750424d2ad6
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       # Uncomment the following lines if you want to fail the job when the Quality Gate is red
       # - name: Check SonarQube Quality Gate
