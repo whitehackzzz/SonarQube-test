@@ -1,4 +1,4 @@
-name: Build
+name: Build and Analyze
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build and analyze
+    name: Build and Analyze
     runs-on: windows-latest
     
     steps:
@@ -26,16 +26,21 @@ jobs:
         run: |
           java -version  # Verify that Java is installed and the correct version is set
 
+      - name: Build with Maven
+        run: mvn clean install  # This will compile the project and create the target/classes directory
+
+      - name: List target directory
+        run: dir target  # List the contents of the target directory to verify compiled classes
+
       - name: Run SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          # Specify the project key and name if not set in sonar-project.properties
-          SONAR_PROJECT_KEY: your.project.key
-          SONAR_PROJECT_NAME: Your Project Name
-          # Set the Java version for SonarQube analysis
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Your SonarQube token
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Your SonarQube server URL
+          SONAR_PROJECT_KEY: your.project.key  # Replace with your project key
+          SONAR_PROJECT_NAME: Your Project Name  # Replace with your project name
           JAVA_HOME: C:\Program Files\AdoptOpenJDK\jdk-11.0.11.9-hotspot  # Adjust this path if necessary
+          SONAR_VERBOSE: true  # Enable verbose logging for SonarQube scan
 
       # Uncomment the following lines if you want to fail your job when the Quality Gate is red
       # - name: Check SonarQube Quality Gate
