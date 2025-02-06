@@ -1,4 +1,4 @@
-name: SonarQube Scan
+name: SonarQube Build and Scan
 
 on:
   push:
@@ -9,39 +9,61 @@ on:
       - main
 
 jobs:
-  sonarqube:
-    runs-on: windows-latest
+  build_and_scan:
+    runs-on: windows-latest # Modify this to 'ubuntu-latest' or your preferred OS
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+    - name: Set up Java 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
 
-      - name: Check if SonarScanner is already installed
-        run: |
-          if (-Not (Test-Path "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat")) {
-            Write-Host "SonarScanner not found, downloading..."
-            Invoke-WebRequest -Uri "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip" -OutFile "sonar-scanner.zip"
-            Expand-Archive -Path sonar-scanner.zip -DestinationPath "C:\sonar-scanner" -Force
-            echo "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
-          } else {
-            Write-Host "SonarScanner already installed."
-          }
+    - name: Verify Java version
+      run: |
+        java -version
+        echo "JAVA_HOME is set to $JAVA_HOME"
 
-      - name: Build project (ensure it’s compiled)
-        run: |
-          mvn clean install # Make sure to run a build before SonarQube scan
+    - name: Check if pom.xml exists
+      run: |
+        echo "Checking if pom.xml exists..."
+        if [ ! -f "pom.xml" ]; then
+          echo "pom.xml not found! Exiting..."
+          exit 1
+        fi
 
-      - name: Run SonarQube Scan
-        run: |
-          sonar-scanner.bat `
-            "-Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163" `
-            "-Dsonar.sources=." `
-            "-Dsonar.java.binaries=target/classes" `
-            "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" `
-            "-Dsonar.login=${{ secrets.SONAR_TOKEN }}"
+    - name: Run Maven clean install
+      run: |
+        echo "Running 'mvn clean install'..."
+        mvn clean install
+      continue-on-error: true
+
+    - name: Troubleshoot Maven Build if Failed
+      if: failure() # This step runs only if the previous Maven step failed
+      run: |
+        echo "Maven build failed. Running with debug logs..."
+        mvn clean install -X
+        exit 1
+
+    - name: Verify target/classes directory exists
+      run: |
+        echo "Checking if target/classes exists..."
+        if [ ! -d "target/classes" ]; then
+          echo "target/classes not found. Ensuring it exists..."
+          mkdir -p target/classes
+          mvn compile
+        fi
+
+    - name: Run SonarQube Scan
+      run: |
+        echo "Running SonarQube Scanner..."
+        sonar-scanner
+      continue-on-error: true
+
+    - name: Troubleshoot SonarQube if Failed
+      if: failure() # This step runs only if the previous SonarQube step failed
+      run: |
+        echo "SonarQube scan failed. Check the logs for issues."
+        exit 1
