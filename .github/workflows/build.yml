@@ -40,8 +40,8 @@ jobs:
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610-linux-x64.zip
           unzip sonar-scanner-cli-6.2.1.4610-linux-x64.zip
           mv sonar-scanner-* sonar-scanner
-          sudo mv sonar-scanner /usr/local/bin/
-          echo 'export PATH=$PATH:/usr/local/bin/sonar-scanner/bin' >> $GITHUB_ENV
+          cd /sonar-scanner/sonar-scanner-6.2.1.4610-linux-x64/bin/
+          
 
       - name: Verify SonarQube scanner installation
         run: sonar-scanner --version
