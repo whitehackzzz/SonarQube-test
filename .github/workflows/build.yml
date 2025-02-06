@@ -46,11 +46,9 @@ jobs:
       - name: Verify SonarQube scanner installation
         run: sonar-scanner --version
 
-      - name: Run SonarQube scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: Run SonarQube scan with system JRE
+        run: |
+          sonar-scanner -Dsonar.projectKey=my_project -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
       
       # Uncomment the following lines if you want to fail the job when the Quality Gate is red
       # - name: Quality Gate check
