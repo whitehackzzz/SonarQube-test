@@ -28,10 +28,11 @@ jobs:
           Expand-Archive -Path sonar-scanner.zip -DestinationPath "C:\sonar-scanner" -Force
           echo "C:\sonar-scanner\sonar-scanner-5.0.1.3006-windows\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
 
-      - name: Run SonarQube Scan
+            - name: Run SonarQube Scan
         run: |
-          sonar-scanner.bat `
-          -Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 `
-          -Dsonar.sources=. `
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} `
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          sonar-scanner.bat ^
+            "-Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163" ^
+            "-Dsonar.sources=." ^
+            "-Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}" ^
+            "-Dsonar.login=${{ secrets.SONAR_TOKEN }}"
+
