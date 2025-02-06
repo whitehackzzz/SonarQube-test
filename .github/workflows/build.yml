@@ -1,4 +1,4 @@
-name: Build and Analyze
+name: SonarQube Scan
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and analyze
+  sonar:
+    name: Run SonarQube Scanner
     runs-on: ubuntu-latest
     
     steps:
@@ -22,23 +22,22 @@ jobs:
           java-version: '11'  # Set JDK version to 11
           distribution: 'adopt'  # Use AdoptOpenJDK (or you can use 'temurin' for newer versions)
 
-      - name: Compile Java files
+      - name: Download SonarQube Scanner
         run: |
-          mkdir -p out  # Create output directory for compiled classes
-          javac -d out src/**/*.java  # Compile all Java files in the src directory
+          # Download SonarQube Scanner
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+          mv sonar-scanner-4.8.0.2856-linux sonar-scanner
+          echo "SONAR_SCANNER_HOME=$(pwd)/sonar-scanner" >> $GITHUB_ENV
+          echo "$SONAR_SCANNER_HOME/bin" >> $GITHUB_PATH
 
-      - name: Run Java application
+      - name: Run SonarQube Scanner
         run: |
-          java -cp out MainClass  # Replace MainClass with the name of your main class
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          # Optional: Specify the project key and name if not set in sonar-project.properties
-          SONAR_PROJECT_KEY: your.project.key
-          SONAR_PROJECT_NAME: Your Project Name
+          sonar-scanner \
+            -Dsonar.projectKey=whitehackzzz_SonarQube-test999_2d38b142-ff2a-442f-bcfd-a57508bbd163 \
+            -Dsonar.sources=src \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       # Uncomment the following lines if you want to fail the job when the Quality Gate is red
       # - name: Check SonarQube Quality Gate
